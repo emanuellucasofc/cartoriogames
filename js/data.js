@@ -242,19 +242,40 @@ CS.EVENTS = [
     ]
   },
   {
+    id: 'coaf',
+    condition: function(s) { return s.level >= 2 && s.money > 1000; },
+    title: 'Dilema de Compliance: COAF',
+    text: 'Um cliente está comprando um imóvel de alto valor e realizando o pagamento integral em espécie. De acordo com o Provimento 88/2019 do CNJ, qual a sua obrigação?',
+    choices: [
+      { text: 'Apenas lavrar a escritura (Falha)', rep: -50, money: 0, xp: 0, log: 'Você não comunicou o COAF. A Corregedoria o autuou severamente por falha de Compliance!' },
+      { text: 'Fazer Comunicação ao COAF', rep: 20, money: 0, xp: 80, log: 'Você comunicou ao COAF uma operação suspeita, cumprindo as normas antilavagem de dinheiro.' }
+    ]
+  },
+  {
+    id: 'vulnerabilidade',
+    condition: function(s) { return s.level >= 1; },
+    title: 'Dilema Ético: Idoso Vulnerável',
+    text: 'Um idoso foi trazido ao balcão pelo sobrinho para assinar uma procuração com plenos poderes. O idoso parece confuso e não entende o que está fazendo.',
+    choices: [
+      { text: 'Lavrar a procuração (Perigoso)', rep: -60, money: 50, xp: 0, log: 'O idoso foi vítima de golpe. Você falhou em avaliar a capacidade e a vontade livre!' },
+      { text: 'Recusar a lavratura (Ético)', rep: 25, money: 0, xp: 100, log: 'Você constatou a ausência de capacidade para o ato e protegeu a vítima de fraude patrimonial.' }
+    ]
+  },
+  {
     id: 'inspecao_corregedoria',
     condition: function(s) { return s.level >= 3; },
     title: 'Inspeção Extraordinária',
     text: 'O Juiz Corregedor chegou de surpresa para fiscalizar o cartório.',
     choices: [
-      { text: 'Prestar Esclarecimentos', action: function(s) {
-          if (s.reputation > 60 && s.queue.length <= 3) {
-            s.money += 500;
-            return { log: 'Correição foi um sucesso! Cartório elogiado.' };
-          } else {
-            s.money -= 800;
-            return { log: 'O Corregedor encontrou desorganização. O cartório foi multado!' };
-          }
+      { text: 'Responder à Sabatina', action: function(s) {
+          var quiz = CS.QUIZZES[Math.floor(Math.random() * CS.QUIZZES.length)];
+          CS.uiState.quizData = { 
+            isCorregedor: true,
+            quiz: quiz
+          };
+          CS.uiState.activeModal = 'quiz';
+          // A modal do evento fechará naturalmente pelo resolveChoice, 
+          // então o render que vem em seguida mostrará o quiz.
         }
       }
     ]
@@ -394,5 +415,37 @@ CS.MINIGAMES = {
       3: ['Título de Crédito', 'Contrato Verbal', 'Promessa Simples']
     },
     answers: { 1: 0, 2: 0, 3: 0 }
+  }
+};
+
+
+CS.CODEX = {
+  lei_8935: {
+    title: 'Lei 8.935/1994 (Lei dos Cartórios)',
+    desc: 'Regulamenta o art. 236 da CF/88, dispondo sobre serviços notariais e de registro.',
+    articles: [
+      { art: 'Art. 1º', text: 'Serviços notariais e de registro são os de organização técnica e administrativa destinados a garantir a publicidade, autenticidade, segurança e eficácia dos atos jurídicos.' },
+      { art: 'Art. 6º', text: 'Aos notários compete: I - formalizar juridicamente a vontade das partes; II - intervir nos atos e negócios jurídicos a que as partes devam ou queiram dar forma legal ou autenticidade.' },
+      { art: 'Art. 14º', text: 'A delegação para o exercício da atividade notarial e de registro depende de habilitação em concurso público de provas e títulos.' }
+    ]
+  },
+  lei_6015: {
+    title: 'Lei 6.015/1973 (Lei de Registros Públicos)',
+    desc: 'Dispõe sobre os Registros Civis, de Imóveis, e de Títulos e Documentos.',
+    articles: [
+      { art: 'Art. 167', text: 'No Registro de Imóveis, além da matrícula, serão feitos: I - o registro: de compra e venda, permuta, doação, hipoteca; II - a averbação: de casamento, separação, cancelamentos.' },
+      { art: 'Art. 216-A', text: 'Sem prejuízo da via jurisdicional, é admitido o pedido de reconhecimento extrajudicial de usucapião, processado diretamente perante o cartório de registro de imóveis da comarca.' },
+      { art: 'Art. 29', text: 'Serão isentos de emolumentos o registro civil de nascimento e o assento de óbito, bem como a primeira certidão respectiva.' }
+    ]
+  },
+  codigo_civil: {
+    title: 'Código Civil (Lei 10.406/2002)',
+    desc: 'Lei base das relações civis: pessoas, bens, contratos, família e sucessões.',
+    articles: [
+      { art: 'Art. 104', text: 'A validade do negócio jurídico requer: I - agente capaz; II - objeto lícito, possível, determinado ou determinável; III - forma prescrita ou não defesa em lei.' },
+      { art: 'Art. 108', text: 'Não dispondo a lei em contrário, a escritura pública é essencial à validade dos negócios jurídicos que envolvam imóveis de valor superior a 30 salários mínimos.' },
+      { art: 'Art. 215', text: 'A escritura pública, lavrada em notas de tabelião, é documento dotado de fé pública, fazendo prova plena.' },
+      { art: 'Art. 1.521', text: 'Não podem casar: I - os ascendentes com os descendentes; II - os afins em linha reta; VI - as pessoas casadas.' }
+    ]
   }
 };

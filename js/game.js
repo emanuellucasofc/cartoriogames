@@ -363,6 +363,36 @@ CS.processCounter = function(counterIndex) {
 CS.answerQuiz = function(isCorrect) {
   var qData = CS.uiState.quizData;
   if (!qData) return;
+  if (qData.isConcurso) {
+    if (isCorrect) {
+      CS.promoteEmployeeFinal(qData.empId);
+    } else {
+      CS.addLog('Reprovado no concurso! Tente novamente mais tarde.', 'no');
+      CS.playFailSound();
+    }
+    CS.uiState.activeModal = null;
+    CS.uiState.quizData = null;
+    CS.render();
+    return;
+  }
+
+  if (qData.isCorregedor) {
+    if (isCorrect) {
+      CS.addLog('Você respondeu corretamente ao Corregedor! O Cartório foi elogiado.', 'ok');
+      CS.changeReputation(10);
+      CS.state.money += 500;
+    } else {
+      CS.addLog('Resposta incorreta! O Corregedor aplicou multa e penalizou o cartório.', 'no');
+      CS.changeReputation(-15);
+      CS.state.money -= 800;
+      CS.playFailSound();
+    }
+    CS.uiState.activeModal = null;
+    CS.uiState.quizData = null;
+    CS.render();
+    return;
+  }
+
   var counterIndex = qData.counterIndex;
   var counter = CS.state.counters[counterIndex];
   if (!counter) {
@@ -629,12 +659,32 @@ CS.promoteEmployee = function(empId) {
   if (!emp) return;
   var info = CS.canPromote(emp);
   if (!info || CS.state.money < info.cost) return;
+
+  var quiz = CS.QUIZZES[Math.floor(Math.random() * CS.QUIZZES.length)];
+  CS.uiState.quizData = { 
+    isConcurso: true,
+    empId: empId, 
+    quiz: quiz,
+    cost: info.cost
+  };
+  CS.uiState.activeModal = 'quiz';
+  CS.render();
+};
+
+CS.promoteEmployeeFinal = function(empId) {
+  var emp = null;
+  for (var i = 0; i < CS.state.employees.length; i++) {
+    if (CS.state.employees[i].id === empId) { emp = CS.state.employees[i]; break; }
+  }
+  if (!emp) return;
+  var info = CS.canPromote(emp);
+  if (!info || CS.state.money < info.cost) return;
   CS.state.money -= info.cost;
   var oldRole = CS.roleByKey(emp.role);
   emp.role = info.nextKey;
   emp.level = info.nextRole.level;
   emp.empXp = 0;
-  CS.addLog(emp.name + ' foi promovido(a) de ' + oldRole.label + ' para ' + info.nextRole.label + '!', 'info');
+  CS.addLog(emp.name + \' foi aprovado(a) no concurso e promovido(a) de \' + oldRole.label + \' para \' + info.nextRole.label + \'!\', \'info\');
   CS.playHireSound();
   CS.saveState();
   CS.render();

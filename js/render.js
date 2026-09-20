@@ -248,7 +248,7 @@ CS.renderHeader = function() {
           '</div>' +
         '</div>' +
         '<div class="header-tools">' +
-          '<button class="tool-btn" data-action="open-vade" title="Vade Mecum">📖</button>' +
+          '<button class="tool-btn" data-action="open-vade" title="Códex Notarial">🏛️</button>' +
           '<button class="tool-btn" data-action="open-stats" title="Estatísticas">🏆</button>' +
           '<button class="tool-btn" data-action="toggle-mute" title="Som">' + muteIcon + '</button>' +
           '<button class="tool-btn" data-action="toggle-dark" title="Tema">' + darkIcon + '</button>' +
@@ -352,15 +352,27 @@ CS.renderModals = function() {
     html += '</div></div>';
   }
   else if (CS.uiState.activeModal === 'quiz' && CS.uiState.quizData) {
+    var isConcurso = CS.uiState.quizData.isConcurso;
+    var isCorregedor = CS.uiState.quizData.isCorregedor;
     var qData = CS.uiState.quizData.quiz;
+    var costStr = isConcurso ? ' (Custo da Prova: R$ ' + CS.uiState.quizData.cost + ')' : '';
+    
+    var title = '⚖️ Teste de Conhecimento';
+    if (isConcurso) title = '🎓 Concurso de Promoção' + costStr;
+    if (isCorregedor) title = '👨‍⚖️ Sabatina do Corregedor';
+    
     html += '<div class="modal event-modal">' +
-      '<h2>⚖️ Teste de Conhecimento</h2>' +
+      '<h2>' + title + '</h2>' +
       '<p><strong>' + CS.esc(qData.question) + '</strong></p>' +
       '<div class="modal-actions" style="flex-direction: column;">';
     
     qData.options.forEach(function(opt, idx) {
       html += '<button class="btn" style="margin-bottom: 8px; text-align: left;" data-action="answer-quiz" data-correct="' + (opt.correct ? 'true' : 'false') + '">' + CS.esc(opt.text) + '</button>';
     });
+    
+    if (isConcurso) {
+       html += '<button class="btn secondary" style="margin-top: 10px;" data-action="close-modal">Cancelar Concurso</button>';
+    }
     
     html += '</div></div>';
   }
@@ -453,26 +465,27 @@ CS.renderModals = function() {
     '</div>';
   }
   else if (CS.uiState.activeModal === 'vade') {
-    html += '<div class="modal stats-modal" style="max-height: 80vh; overflow-y: auto;">' +
-      '<h2>📖 Vade Mecum Notarial</h2>' +
-      '<p>Glossário de termos destrancados durante o atendimento.</p>' +
+    html += '<div class="modal stats-modal" style="max-height: 85vh; max-width: 800px; overflow-y: auto;">' +
+      '<h2>🏛️ Códex Notarial e Registral</h2>' +
+      '<p>Consulte aqui as leis e princípios fundamentais do serviço extrajudicial.</p>' +
       '<div style="text-align:left; margin-bottom: 20px;">';
     
-    if (CS.state.unlockedTerms.length === 0) {
-      html += '<p><em>Nenhum termo desbloqueado ainda. Atenda clientes para aprender!</em></p>';
-    } else {
-      CS.state.unlockedTerms.forEach(function(termKey) {
-        var term = CS.GLOSSARY[termKey];
-        if (term) {
-          html += '<div style="margin-bottom: 12px; padding: 12px; background: rgba(0,0,0,0.05); border-left: 4px solid var(--gold); border-radius: 4px;">' +
-            '<strong style="color: var(--gold); display: block; margin-bottom: 4px;">' + CS.esc(term.title) + '</strong>' +
-            '<span>' + CS.esc(term.desc) + '</span>' +
-          '</div>';
-        }
+    for (var key in CS.CODEX) {
+      var lei = CS.CODEX[key];
+      html += '<div style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.03); border: 1px solid #d4c5b0; border-radius: 6px;">' +
+        '<h3 style="color: var(--gold); margin-top: 0; margin-bottom: 6px;">📜 ' + CS.esc(lei.title) + '</h3>' +
+        '<p style="font-style: italic; margin-bottom: 12px; font-size: 14px;">' + CS.esc(lei.desc) + '</p>';
+      
+      lei.articles.forEach(function(art) {
+        html += '<div style="margin-bottom: 8px; padding-left: 10px; border-left: 3px solid #8e0000;">' +
+          '<strong>' + CS.esc(art.art) + ' - </strong> ' + CS.esc(art.text) +
+        '</div>';
       });
+      html += '</div>';
     }
+    
     html += '</div>' +
-      '<div class="modal-actions"><button class="btn" data-action="close-modal">Fechar</button></div>' +
+      '<div class="modal-actions"><button class="btn" data-action="close-modal">Fechar Códex</button></div>' +
     '</div>';
   }
   else if (CS.uiState.activeModal === 'day-end' && CS.uiState.daySummary) {
