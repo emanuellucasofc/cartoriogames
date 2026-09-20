@@ -82,7 +82,7 @@ CS.mkClient = function(type) {
     patience: patience,
     waitedTicks: 0,
     avatar: avatar,
-    docsStatus: isFlawed ? 'missing' : 'perfect',
+    docsStatus: isFlawed ? 'flawed' : 'perfect',
     flawCategory: flawCategory,
     presentedDocs: presentedDocs,
     studyCaseId: studyCaseId,
@@ -210,8 +210,7 @@ CS.migrateState = function(s) {
 CS.saveState = function() {
   try {
     var json = JSON.stringify(CS.state);
-    if (window.storage) window.storage.set(CS.STORAGE_KEY, json, false).catch(function(){});
-    else localStorage.setItem(CS.STORAGE_KEY, json);
+    localStorage.setItem(CS.STORAGE_KEY, json);
   } catch (e) {}
 };
 
@@ -224,20 +223,7 @@ CS.loadState = function(cb) {
     } catch(e) {}
     return null;
   }
-  if (window.storage) {
-    try {
-      window.storage.get(CS.STORAGE_KEY, false).then(function(res) {
-        var s = tryParse(res && res.value);
-        if (s) { cb(s); return; }
-        s = tryParse(localStorage.getItem(CS.STORAGE_KEY));
-        cb(s || CS.freshState());
-      }).catch(function() {
-        var s = tryParse(localStorage.getItem(CS.STORAGE_KEY));
-        cb(s || CS.freshState());
-      });
-      return;
-    } catch(e) {}
-  }
+
   try {
     var s = tryParse(localStorage.getItem(CS.STORAGE_KEY));
     cb(s || CS.freshState());

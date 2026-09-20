@@ -228,7 +228,7 @@ CS.renderHeader = function() {
   var timeStr = 'Dia ' + t.day + ' - ' + String(t.hour).padStart(2, '0') + ':' + String(t.minute).padStart(2, '0');
 
   return (
-    '<header class="letterhead" id="main-header">' +
+    '<header class="letterhead">' +
       '<div class="brand">' + CS.renderSeal() +
         '<div class="brand-text">' +
           '<h1>Cartório Central</h1>' +
@@ -416,30 +416,6 @@ CS.renderModals = function() {
       '</div></div>';
     }
   }
-  else if (CS.uiState.activeModal === 'minigame-lavratura' && CS.uiState.minigameData) {
-    var mg = CS.MINIGAMES[CS.uiState.minigameData.gameId];
-    if (mg) {
-      var text = mg.text;
-      for (var k in mg.options) {
-        var sel = '<select id="minigame-sel-' + k + '" class="minigame-select" style="font-size:16px; padding:4px; margin: 0 4px; border-radius: 4px; border: 1px solid #c5a059;"><option value="">-- selecione --</option>';
-        for (var i = 0; i < mg.options[k].length; i++) {
-          sel += '<option value="' + i + '">' + CS.esc(mg.options[k][i]) + '</option>';
-        }
-        sel += '</select>';
-        text = text.replace('[' + k + ']', sel);
-      }
-      
-      html += '<div class="modal doc-modal" style="max-width: 600px;">' +
-        '<div class="modal-head"><h2>✍️ ' + CS.esc(mg.title) + '</h2></div>' +
-        '<div class="doc-body" style="font-size: 18px; line-height: 1.8; padding: 20px;">' +
-          text +
-        '</div>' +
-        '<div class="modal-actions" style="margin-top:20px; justify-content:center;">' +
-          '<button class="btn" style="background:#27ae60; width: 250px;" data-action="submit-minigame">Assinar e Lavrar</button>' +
-        '</div>' +
-      '</div>';
-    }
-  }
   else if (CS.uiState.activeModal === 'info-docs' && CS.uiState.infoDocsKey) {
     var typeInfo = CS.clientTypeByKey(CS.uiState.infoDocsKey);
     html += '<div class="modal event-modal">' +
@@ -483,10 +459,7 @@ CS.renderModals = function() {
       '<div class="day-stats">' +
         '<div class="d-row"><span>Atendimentos Concluídos:</span><strong>' + d.served + '</strong></div>' +
         '<div class="d-row"><span>Receita Gerada:</span><strong class="green">+ R$ ' + d.revenue.toLocaleString('pt-BR') + '</strong></div>' +
-        '<div class="d-row"><span>Salários da Equipe:</span><strong class="red">- R$ ' + d.salaries.toLocaleString('pt-BR') + '</strong></div>' +
-        '<div class="d-row"><span>Aluguel da Serventia:</span><strong class="red">- R$ ' + d.rent.toLocaleString('pt-BR') + '</strong></div>' +
-        '<div class="d-row"><span>Sistemas e Backup:</span><strong class="red">- R$ ' + d.software.toLocaleString('pt-BR') + '</strong></div>' +
-        '<div class="d-row"><span>Imposto (ISS):</span><strong class="red">- R$ ' + d.taxes.toLocaleString('pt-BR') + '</strong></div>' +
+        '<div class="d-row"><span>Pagamento de Salários:</span><strong class="red">- R$ ' + d.expenses.toLocaleString('pt-BR') + '</strong></div>' +
         '<hr>' +
         '<div class="d-row"><span>Lucro Líquido:</span><strong class="' + (d.profit >= 0 ? 'green' : 'red') + '">R$ ' + d.profit.toLocaleString('pt-BR') + '</strong></div>' +
       '</div>' +
@@ -605,14 +578,9 @@ CS.renderRoster = function() {
     var cost = CS.hireCost(role.key);
     var cap = CS.roleCapabilityLabel(role);
     html += '<div class="hire-row">' +
-      '<div><span class="lbl">' + role.label + '</span><span class="rank">Custo: R$ ' + cost.toLocaleString('pt-BR') + ' · Salário: R$ ' + role.salary + '/dia<br>Capacidade: ' + cap + '</span></div>';
-    
-    if (role.key === 'titular') {
-      html += '<button class="btn small" disabled>Único (Você)</button>';
-    } else {
-      html += '<button class="btn small" data-action="hire" data-role="' + role.key + '" ' + (CS.state.money >= cost ? '' : 'disabled') + '>Contratar</button>';
-    }
-    html += '</div>';
+      '<div><span class="lbl">' + role.label + '</span><span class="rank">Custo: R$ ' + cost.toLocaleString('pt-BR') + ' · Salário: R$ ' + role.salary + '/dia<br>Capacidade: ' + cap + '</span></div>' +
+      '<button class="btn small" data-action="hire" data-role="' + role.key + '" ' + (CS.state.money >= cost ? '' : 'disabled') + '>Contratar</button>' +
+    '</div>';
   });
   html += '</div></div></div>';
   return html;
@@ -677,18 +645,7 @@ CS.renderCounters = function() {
       html += '<div class="counter-head"><span>Guichê ' + (i+1) + '</span><span class="protocol">Nº ' + CS.esc(client.protocol) + '</span></div>' +
         '<div class="counter-body">';
       
-      if (pending) {
-        var stampText = 'Deferido';
-        if (pending === 'ok') {
-          if (stage.key === 'lavratura_notas' || stage.key === 'protesto_ato') stampText = 'Lavrado';
-          else if (stage.key === 'registro_ri' || stage.key === 'registro_pj' || stage.key === 'assento') stampText = 'Registrado';
-          else if (stage.key === 'assinatura') stampText = 'Assinado';
-          else if (stage.key === 'certidao' || stage.key === 'traslado') stampText = 'Emitido';
-        } else {
-          stampText = 'Exigência';
-        }
-        html += '<div class="stamp"><div class="mark ' + pending + '">' + stampText + '</div></div>';
-      }
+      if (pending) html += '<div class="stamp"><div class="mark ' + pending + '">' + (pending === 'ok' ? 'Deferido' : 'Exigência') + '</div></div>';
 
       html += '<div style="display:flex;gap:12px;align-items:center;margin-bottom:8px;"><div class="avatar-small">' + (client.avatar||'👤') + '</div>' +
         '<div><div class="client-type">' + type.label + (type.reqDocs ? ' <button style="background:none;border:none;cursor:pointer;padding:0;font-size:16px;" data-action="info-docs" data-type="' + type.key + '">ℹ️</button>' : '') + '</div><div class="client-desc">' + type.desc + '</div></div></div>';
@@ -761,7 +718,7 @@ CS.render = function() {
       '<div class="' + (activeTab === 'guiches' ? 'tab-active' : '') + '" data-panel="guiches">' +
         CS.renderCounters() +
       '</div>' +
-      '<div class="' + (activeTab === 'fila' ? 'tab-active' : '') + '" data-panel="fila" id="panel-fila">' +
+      '<div class="' + (activeTab === 'fila' ? 'tab-active' : '') + '" data-panel="fila">' +
         CS.renderQueueAndLog() +
       '</div>' +
     '</div>' +
@@ -774,20 +731,6 @@ CS.render = function() {
 
   // Sincroniza o Visual Office após renderizar a DOM
   CS.updateOfficeSprites();
-};
-
-CS.renderTick = function() {
-  var header = document.getElementById('main-header');
-  if (header) {
-    var dummy = document.createElement('div');
-    dummy.innerHTML = CS.renderHeader();
-    header.parentNode.replaceChild(dummy.firstChild, header);
-  }
-  var fila = document.getElementById('panel-fila');
-  if (fila) {
-    fila.innerHTML = CS.renderQueueAndLog();
-  }
-  if (CS.updateOfficeSprites) CS.updateOfficeSprites();
 };
 
 window.CS = CS;

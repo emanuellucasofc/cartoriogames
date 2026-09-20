@@ -9,22 +9,47 @@ CS.MAX_COUNTERS_BASE = 3;
 
 /* ---------- Tipos de Clientes e Etapas ---------- */
 CS.ALL_STAGES = [
-  { key: 'recepcao',   label: 'Recepção',           roleLabel: 'Auxiliar+',   minLevel: 1, okMsgs: ['Documentação recebida.', 'Triagem ok.', 'Senha emitida.'], noMsgs: ['Falta de cópia.', 'Documento ilegível.'] },
-  { key: 'qualificacao',label: 'Qualificação',      roleLabel: 'Escrevente+', minLevel: 2, okMsgs: ['Dados conferidos.', 'Qualificação aceita.', 'Partes identificadas.'], noMsgs: ['Assinatura divergente.', 'Documento vencido.'] },
-  { key: 'analise_cadeia',label:'Análise de Cadeia',roleLabel: 'Substituto+', minLevel: 3, okMsgs: ['Cadeia dominial íntegra.', 'Princípio da continuidade ok.', 'Matrícula anterior validada.'], noMsgs: ['Quebra de continuidade.', 'Ônus não baixado.'] },
-  { key: 'lavratura',  label: 'Lavratura/Ato',      roleLabel: 'Substituto+', minLevel: 3, okMsgs: ['Ato lavrado com sucesso.', 'Registro efetivado.', 'Minuta aprovada.'], noMsgs: ['Erro no sistema TJ.', 'Falta de selo.'] },
-  { key: 'assinatura', label: 'Assinatura Final',   roleLabel: 'Titular',     minLevel: 4, okMsgs: ['Assinado pelo Oficial.', 'Fé pública concedida.', 'Ato encerrado.'], noMsgs: ['Revisão pendente.', 'Oficial recusou.'] }
+  // Comuns / Genéricas
+  { key: 'recepcao',     label: 'Recepção / Triagem', roleLabel: 'Auxiliar+',   minLevel: 1 },
+  { key: 'qualificacao', label: 'Qualificação',       roleLabel: 'Escrevente+', minLevel: 2 },
+  { key: 'assinatura',   label: 'Assinatura Final',   roleLabel: 'Titular',     minLevel: 4 },
+  
+  // Tabelionato de Notas
+  { key: 'conferencia',  label: 'Conferência de Capacidade', roleLabel: 'Escrevente+', minLevel: 2 },
+  { key: 'minuta',       label: 'Elaboração de Minuta',      roleLabel: 'Escrevente+', minLevel: 2 },
+  { key: 'leitura',      label: 'Leitura e Assinatura',      roleLabel: 'Substituto+', minLevel: 3 },
+  { key: 'lavratura_notas', label: 'Lavratura no Livro',     roleLabel: 'Substituto+', minLevel: 3 },
+  { key: 'traslado',     label: 'Emissão de Traslado',       roleLabel: 'Auxiliar+',   minLevel: 1 },
+  
+  // Registro de Imóveis
+  { key: 'prenotacao',   label: 'Prenotação',                roleLabel: 'Auxiliar+',   minLevel: 1 },
+  { key: 'qualificacao_ri', label: 'Qualificação Registral', roleLabel: 'Substituto+', minLevel: 3 },
+  { key: 'registro_ri',  label: 'Registro / Averbação',      roleLabel: 'Titular',     minLevel: 4 },
+  
+  // Protesto
+  { key: 'exame_formal', label: 'Exame Formal',              roleLabel: 'Auxiliar+',   minLevel: 1 },
+  { key: 'intimacao',    label: 'Intimação do Devedor',      roleLabel: 'Escrevente+', minLevel: 2 },
+  { key: 'prazo_3_dias', label: 'Decurso do Prazo (3 dias)', roleLabel: 'Auxiliar+',   minLevel: 1 },
+  { key: 'protesto_ato', label: 'Lavratura do Protesto',     roleLabel: 'Substituto+', minLevel: 3 },
+  
+  // RCPN
+  { key: 'declaracao',   label: 'Coleta de Declaração',      roleLabel: 'Escrevente+', minLevel: 2 },
+  { key: 'assento',      label: 'Lavratura do Assento',      roleLabel: 'Substituto+', minLevel: 3 },
+  { key: 'certidao',     label: 'Emissão da Certidão',       roleLabel: 'Auxiliar+',   minLevel: 1 },
+  
+  // RCPJ/RTD
+  { key: 'registro_pj',  label: 'Registro em Livro Próprio', roleLabel: 'Substituto+', minLevel: 3 }
 ];
 
 CS.LEGACY_STAGE_KEYS = ['recepcao', 'qualificacao', 'lavratura', 'assinatura'];
 
 CS.CLIENT_TYPES = [
-  { key: 'rcpn',   label: 'Certidão Nascimento', desc: 'Registro Civil', pay: 80,  patienceRange: [7, 12], stageKeys: ['recepcao', 'qualificacao', 'assinatura'], reqDocs: ['RG do Requerente', 'Dados do Livro e Folha'] },
-  { key: 'notas',  label: 'Escritura Pública',   desc: 'Tabelionato',    pay: 350, patienceRange: [10, 16], stageKeys: ['recepcao', 'qualificacao', 'lavratura', 'assinatura'], reqDocs: ['RG e CPF originais', 'Certidão de Casamento', 'Guia do Imposto Paga', 'Certidão de Ônus'] },
-  { key: 'protesto',label:'Protesto de Título',  desc: 'Títulos',        pay: 150, patienceRange: [6, 10], stageKeys: ['recepcao', 'qualificacao', 'assinatura'], reqDocs: ['Título Original (Boleto/Cheque)', 'Formulário de Apontamento'] },
-  { key: 'rcpj',   label: 'Contrato Social',     desc: 'Pessoa Jurídica',pay: 220, patienceRange: [8, 14], stageKeys: ['recepcao', 'qualificacao', 'lavratura', 'assinatura'], reqDocs: ['Contrato Social Assinado', 'RG e CPF dos Sócios', 'Visto do Advogado'] },
-  { key: 'imoveis',label: 'Registro de Imóvel',  desc: 'Reg. de Imóveis',pay: 550, patienceRange: [12, 18], stageKeys: ['recepcao', 'qualificacao', 'analise_cadeia', 'lavratura', 'assinatura'], reqDocs: ['Escritura Pública Original', 'Comprovante do ITBI', 'Certidões Negativas'] },
-  { key: 'casamento',label: 'Casamento Civil',   desc: 'Sala VIP',       pay: 1200, patienceRange: [20, 30], stageKeys: ['recepcao', 'qualificacao', 'lavratura', 'assinatura'], reqDocs: ['Certidões de Nascimento', 'RG e CPF dos Noivos', 'Pacto Antenupcial'] }
+  { key: 'rcpn',   label: 'Certidão Nascimento', desc: 'Registro Civil', pay: 0,   patienceRange: [7, 12], stageKeys: ['recepcao', 'declaracao', 'assento', 'certidao'], reqDocs: ['RG do Requerente', 'Dados do Livro e Folha'] },
+  { key: 'notas',  label: 'Escritura Pública',   desc: 'Tabelionato',    pay: 350, patienceRange: [10, 16], stageKeys: ['recepcao', 'conferencia', 'minuta', 'leitura', 'lavratura_notas', 'assinatura', 'traslado'], reqDocs: ['RG e CPF originais', 'Certidão de Casamento', 'Guia do Imposto Paga', 'Certidão de Ônus'] },
+  { key: 'protesto',label:'Protesto de Título',  desc: 'Títulos',        pay: 150, patienceRange: [6, 10], stageKeys: ['recepcao', 'exame_formal', 'intimacao', 'prazo_3_dias', 'protesto_ato', 'assinatura'], reqDocs: ['Título Original (Boleto/Cheque)', 'Formulário de Apontamento'] },
+  { key: 'rcpj',   label: 'Contrato Social',     desc: 'Pessoa Jurídica',pay: 220, patienceRange: [8, 14], stageKeys: ['recepcao', 'qualificacao', 'registro_pj', 'assinatura'], reqDocs: ['Contrato Social Assinado', 'RG e CPF dos Sócios', 'Visto do Advogado'] },
+  { key: 'imoveis',label: 'Registro de Imóvel',  desc: 'Reg. de Imóveis',pay: 550, patienceRange: [12, 18], stageKeys: ['prenotacao', 'qualificacao_ri', 'registro_ri', 'assinatura'], reqDocs: ['Escritura Pública Original', 'Comprovante do ITBI', 'Certidões Negativas'] },
+  { key: 'casamento',label: 'Casamento Civil',   desc: 'Sala VIP',       pay: 1200, patienceRange: [20, 30], stageKeys: ['recepcao', 'conferencia', 'assento', 'assinatura', 'certidao'], reqDocs: ['Certidões de Nascimento', 'RG e CPF dos Noivos', 'Pacto Antenupcial'] }
 ];
 
 /* ---------- Cargos e Hierarquia ---------- */
@@ -307,3 +332,67 @@ CS.INSPECTOR_QUIZZES = [
 ];
 
 window.CS = CS;
+
+
+/* ---------- Minigames de Lavratura (Preenchimento de Lacunas) ---------- */
+CS.MINIGAMES = {
+  notas: {
+    title: 'Lavratura de Escritura Pública (Art. 215 CC)',
+    text: 'A escritura pública, lavrada em notas de tabelião, é documento dotado de fé pública. Para a validade do ato, verificou-se a [1] das partes, a sua [2] e o [3].',
+    options: {
+      1: ['Capacidade Plena', 'Beleza Física', 'Nacionalidade Estrangeira'],
+      2: ['Vontade Livre e Consciente', 'Condição Financeira', 'Presença de Advogado'],
+      3: ['Objeto Lícito e Possível', 'Reconhecimento de Firma', 'Abono de Faltas']
+    },
+    answers: { 1: 0, 2: 0, 3: 0 }
+  },
+  imoveis: {
+    title: 'Qualificação e Registro (Lei 6.015/73)',
+    text: 'Apresentado o título, procede-se à [1] registral. Sendo o título apto, obedece-se ao princípio da [2], lançando-o na matrícula e garantindo a [3] aos terceiros.',
+    options: {
+      1: ['Prenotação', 'Qualificação', 'Incineração'],
+      2: ['Continuidade', 'Imediatidade', 'Gratuidade'],
+      3: ['Publicidade', 'Propriedade Absoluta', 'Inexigibilidade']
+    },
+    answers: { 1: 1, 2: 0, 3: 0 }
+  },
+  casamento: {
+    title: 'Habilitação e Assento de Casamento (Art. 1.525 CC)',
+    text: 'Requerida a habilitação, após publicação dos [1], e não havendo [2], os nubentes escolhem o regime de [3] e o Oficial lavra o assento no Livro B.',
+    options: {
+      1: ['Proclamas', 'Convites', 'Anúncios no Jornal'],
+      2: ['Impedimentos', 'Parentes', 'Faltas'],
+      3: ['Bens (Comunhão/Separação)', 'Visitas', 'Guarda']
+    },
+    answers: { 1: 0, 2: 0, 3: 0 }
+  },
+  rcpn: {
+    title: 'Assento de Nascimento (Lei 6.015/73)',
+    text: 'O registro de nascimento deve ser feito no [1] do lugar do parto ou da residência dos pais. Deve constar o [2] e a [3] da criança.',
+    options: {
+      1: ['Cartório de Notas', 'Cartório de RCPN', 'Hospital'],
+      2: ['Dia, mês, ano e hora', 'Peso e altura', 'Nome do médico'],
+      3: ['Naturalidade', 'Cor da pele', 'Religião']
+    },
+    answers: { 1: 1, 2: 0, 3: 0 }
+  },
+  rcpj: {
+    title: 'Registro de Contrato Social (Art. 45 CC)',
+    text: 'Começa a existência legal das pessoas jurídicas com a [1] de seus atos constitutivos, precedida de autorização ou [2] do Executivo, quando necessário.',
+    options: {
+      1: ['Publicação', 'Inscrição', 'Aprovação'],
+      2: ['Decreto', 'Aprovação', 'Alvará']
+    },
+    answers: { 1: 1, 2: 1 }
+  },
+  protesto: {
+    title: 'Lavratura do Protesto (Lei 9.492/97)',
+    text: 'O protesto é o ato formal e [1] pelo qual se prova a [2] e o descumprimento de obrigação originada em [3].',
+    options: {
+      1: ['Solene', 'Extraoficial', 'Policial'],
+      2: ['Inadimplência', 'Adimplência', 'Culpabilidade'],
+      3: ['Título de Crédito', 'Contrato Verbal', 'Promessa Simples']
+    },
+    answers: { 1: 0, 2: 0, 3: 0 }
+  }
+};

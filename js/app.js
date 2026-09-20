@@ -69,6 +69,9 @@ var CS = window.CS;
         var isCorrect = el.getAttribute('data-correct') === 'true';
         CS.answerQuiz(isCorrect);
         break;
+      case 'submit-minigame':
+        CS.resolveMinigame();
+        break;
       case 'doc-approve':
         CS.resolveDocCheck('approve');
         break;
@@ -187,7 +190,7 @@ var CS = window.CS;
         // Apenas atualiza os bonequinhos, mas não destroi o HTML onde ele está clicando
         if (CS.updateOfficeSprites) CS.updateOfficeSprites();
       } else {
-        CS.render();
+        CS.renderTick();
       }
       
       CS.saveState();

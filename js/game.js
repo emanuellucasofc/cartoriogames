@@ -76,47 +76,60 @@ CS.tickTime = function() {
 CS.endOfDay = function() {
   var s = CS.state;
   var totalSalaries = 0;
-  var servedToday = s.stats.moneyEarned; // Utilizando isso provisoriamente, na verdade precisamos rastrear a grana do dia.
+  var servedToday = s.stats.moneyEarned;
   
-  // Como moneyEarned é lifetime, vamos criar um campo temporary para o dia:
   if (!s.dayIncome) s.dayIncome = 0;
   if (!s.dayServed) s.dayServed = 0;
 
   s.employees.forEach(function(emp) {
-    var role = CS.roleByKey(emp.role);
-    totalSalaries += role.salary;
+    if (emp.role !== 'titular') {
+      var role = CS.roleByKey(emp.role);
+      totalSalaries += role.salary;
+    }
   });
+
+  var dailyRent = 250;
+  var softwareLicense = 50;
+  var issTax = Math.round(s.dayIncome * 0.05); // ISS (5%)
+  
+  var totalExpenses = totalSalaries + dailyRent + softwareLicense + issTax;
 
   var lostInQueue = s.queue.length;
   if (lostInQueue > 0) {
     CS.changeReputation(- (lostInQueue * 2));
-    CS.addLog(lostInQueue + ' clientes foram dispensados devido ao fim do expediente.', 'no');
+    CS.addLogEntry('', lostInQueue + ' clientes foram dispensados devido ao fim do expediente.', 'no');
     s.stats.clientsLost += lostInQueue;
   }
   
-  // Limpa a fila
   s.queue.forEach(function(id) { delete s.clients[id]; });
   s.queue = [];
 
-  s.money -= totalSalaries;
+  s.money -= totalExpenses;
   
-  // Salva no histórico
-  var profit = s.dayIncome - totalSalaries;
+  if (s.money < 0) {
+    CS.changeReputation(-10);
+    CS.addLogEntry('', 'Fundo de caixa negativo! A Corregedoria aplicou uma penalidade.', 'no');
+  }
+  
+  var profit = s.dayIncome - totalExpenses;
   s.history.push({
     day: s.time.day,
     revenue: s.dayIncome,
-    expenses: totalSalaries,
+    expenses: totalExpenses,
     profit: profit,
     served: s.dayServed
   });
   
-  // Mantém apenas os últimos 7 dias no gráfico
   if (s.history.length > 7) s.history.shift();
 
   CS.uiState.daySummary = {
     day: s.time.day,
     revenue: s.dayIncome,
-    expenses: totalSalaries,
+    salaries: totalSalaries,
+    rent: dailyRent,
+    software: softwareLicense,
+    taxes: issTax,
+    expenses: totalExpenses,
     profit: profit,
     served: s.dayServed
   };
@@ -288,7 +301,7 @@ CS.processCounter = function(counterIndex) {
   }
 
   // Fase 10 & 11: Qualificação e Triagem
-  var needsAudit = (stage.key === 'qualificacao' || stage.key === 'recepcao');
+  var needsAudit = (stage.key === 'qualificacao' || stage.key === 'recepcao' || stage.key === 'conferencia' || stage.key === 'prenotacao' || stage.key === 'exame_formal');
   if (needsAudit && !client.docCheckDone) {
     if (client.studyCaseId && !client.triageDone) {
       CS.uiState.triageData = { counterIndex: counterIndex, employeeId: employee.id };
@@ -303,7 +316,16 @@ CS.processCounter = function(counterIndex) {
     return;
   }
 
-  // Fase 9: Quizzes Educacionais (reduzido para não conflitar muito com Auditoria)
+  // Minigame de Lavratura (Fase 3)
+  var isLavratura = (stage.key === 'minuta' || stage.key === 'lavratura_notas' || stage.key === 'registro_ri' || stage.key === 'assento' || stage.key === 'registro_pj' || stage.key === 'protesto_ato');
+  if (isLavratura && CS.MINIGAMES[client.typeKey] && !client.minigameDone) {
+    CS.uiState.minigameData = { counterIndex: counterIndex, employeeId: employee.id, gameId: client.typeKey };
+    CS.uiState.activeModal = 'minigame-lavratura';
+    CS.render();
+    return;
+  }
+
+  // Fase 9: Quizzes Educacionais
   if (!client.quizDone && Math.random() < 0.05 && CS.QUIZZES.length > 0) {
     client.quizDone = true;
     var quiz = CS.QUIZZES[Math.floor(Math.random() * CS.QUIZZES.length)];
@@ -406,7 +428,7 @@ CS.resolveDocCheck = function(action) {
   var stage = stages[client.stageIndex];
   var employee = CS.state.employees.find(function(e) { return e.id === data.employeeId; });
   
-  var isMissing = client.docsStatus === 'missing';
+  var isMissing = client.docsStatus === 'flawed';
   var isApproved = action === 'approve';
 
   CS.uiState.activeModal = null;
@@ -464,7 +486,7 @@ CS.resolveDocCheckWithReason = function(reason) {
   }
   
   var client = CS.state.clients[counter.clientId];
-  var isMissing = client.docsStatus === 'missing';
+  var isMissing = client.docsStatus === 'flawed';
   
   CS.uiState.activeModal = null;
   CS.uiState.docCheckData = null;
@@ -506,23 +528,31 @@ function advanceClient(counterIndex, client, stages, employee, counter) {
   if (client.stageIndex >= stages.length) {
     var type = CS.clientTypeByKey(client.typeKey);
     
-    CS.state.money += type.pay;
-    CS.state.stats.moneyEarned += type.pay;
+    var finalPay = type.pay;
+    if (client.typeKey === 'imoveis' || client.typeKey === 'notas') {
+      var propValue = Math.floor(Math.random() * 400000) + 100000;
+      var emolumentos = Math.floor(propValue * 0.005); // 0.5% do valor do imóvel
+      finalPay = Math.max(type.pay, emolumentos);
+      CS.addLogEntry(client.protocol, 'Base de cálculo (imóvel): R$ ' + propValue.toLocaleString('pt-BR') + '. Emolumentos calculados: R$ ' + finalPay.toLocaleString('pt-BR'), 'info');
+    }
+    
+    CS.state.money += finalPay;
+    CS.state.stats.moneyEarned += finalPay;
     if (!CS.state.dayIncome) CS.state.dayIncome = 0;
-    CS.state.dayIncome += type.pay;
+    CS.state.dayIncome += finalPay;
     
     CS.state.completed++;
     if (!CS.state.dayServed) CS.state.dayServed = 0;
     CS.state.dayServed++;
 
-    var xpGain = Math.round(type.pay / 8);
+    var xpGain = Math.round(finalPay / 8);
     CS.state.xp += xpGain;
     
-    var repGain = 3 + Math.round(type.pay / 40);
+    var repGain = 3 + Math.round(finalPay / 40);
     CS.changeReputation(repGain);
     
     CS.addLogEntry(client.protocol,
-      'Atendimento concluído (' + type.label + '). +R$' + type.pay + ' / +' + xpGain + ' XP / +' + repGain + '★', 'ok');
+      'Atendimento concluído (' + type.label + '). +R$' + finalPay.toLocaleString('pt-BR') + ' / +' + xpGain + ' XP / +' + repGain + '★', 'ok');
     CS.playSuccessSound();
 
     while (CS.state.xp >= CS.xpForLevel(CS.state.level)) {
@@ -800,3 +830,58 @@ CS.resolveInspectorQuiz = function(isCorrect) {
 };
 
 window.CS = CS;
+
+
+CS.resolveMinigame = function() {
+  var data = CS.uiState.minigameData;
+  if (!data) return;
+  var counterIndex = data.counterIndex;
+  var counter = CS.state.counters[counterIndex];
+  if (!counter) return;
+
+  var client = CS.state.clients[counter.clientId];
+  var stages = CS.getClientStages(client);
+  var employee = CS.state.employees.find(function(e) { return e.id === data.employeeId; });
+  
+  var mg = CS.MINIGAMES[data.gameId];
+  if (!mg) return;
+
+  var isAllCorrect = true;
+  for (var k in mg.answers) {
+    var sel = document.getElementById('minigame-sel-' + k);
+    if (!sel || parseInt(sel.value) !== mg.answers[k]) {
+      isAllCorrect = false;
+      break;
+    }
+  }
+
+  CS.uiState.activeModal = null;
+  CS.uiState.minigameData = null;
+
+  if (isAllCorrect) {
+    CS.uiState.pendingResults[counterIndex] = 'ok';
+    CS.playStampSound();
+    CS.render();
+    setTimeout(function() {
+      CS.addLogEntry(client.protocol, 'Documento preenchido perfeitamente! Avançando...', 'ok');
+      if (employee) employee.empXp += 50;
+      CS.state.money += 50;
+      advanceClient(counterIndex, client, stages, employee, counter);
+      delete CS.uiState.pendingResults[counterIndex];
+      CS.saveState();
+      CS.render();
+    }, 800);
+  } else {
+    CS.uiState.pendingResults[counterIndex] = 'no';
+    CS.playFailSound();
+    CS.render();
+    setTimeout(function() {
+      CS.addLogEntry(client.protocol, 'Erro na lavratura! O documento continha vícios jurídicos. Cliente furioso.', 'no');
+      CS.changeReputation(-5);
+      counter.clientId = null;
+      delete CS.uiState.pendingResults[counterIndex];
+      CS.saveState();
+      CS.render();
+    }, 800);
+  }
+};
