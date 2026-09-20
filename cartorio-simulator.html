@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cartório Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #efe6d2;
+    --paper-panel: #e7dcc0;
+    --paper-line: #c6b48a;
+    --ink: #2a2119;
+    --ink-soft: #6b5f4c;
+    --green: #33513f;
+    --green-dark: #24392c;
+    --green-pale: #e1e8de;
+    --wine: #8a3038;
+    --wine-pale: #f1dfdd;
+    --gold: #a9803f;
+    --paper-white: #faf6ea;
+    --radius: 3px;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, rgba(0,0,0,0.015) 1px, transparent 1px, transparent 3px);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  a{color:inherit;}
+  button{font-family: var(--sans); cursor:pointer;}
+  button:disabled{cursor:not-allowed; opacity:0.45;}
+  button:focus-visible, select:focus-visible{outline: 2px solid var(--green-dark); outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+
+  .app{max-width:1180px; margin:0 auto;}
+
+  /* ---------- Letterhead header ---------- */
+  header.letterhead{
+    border-bottom: 3px double var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap: 14px;
+  }
+  .brand{display:flex; align-items:center; gap:14px;}
+  .seal{width:52px; height:52px; flex-shrink:0;}
+  .brand-text h1{
+    font-family: var(--serif);
+    font-weight:700;
+    font-size: 28px;
+    margin:0;
+    letter-spacing: 0.2px;
+  }
+  .brand-text p{
+    margin: 2px 0 0;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+  }
+  .stats{display:flex; gap:10px; flex-wrap:wrap;}
+  .stat-chip{
+    background: var(--paper-white);
+    border: 1px solid var(--paper-line);
+    border-radius: var(--radius);
+    padding: 7px 12px;
+    text-align:center;
+    min-width: 92px;
+  }
+  .stat-chip .k{font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.6px;}
+  .stat-chip .v{font-family:var(--serif); font-weight:700; font-size:17px; margin-top:1px;}
+  .xp-bar{width:100%; height:5px; background:var(--paper-line); border-radius:3px; margin-top:5px; overflow:hidden;}
+  .xp-bar > div{height:100%; background:var(--green); transition: width 0.4s ease;}
+
+  /* ---------- Layout ---------- */
+  .layout{
+    display:grid;
+    grid-template-columns: 250px 1fr 270px;
+    gap: 18px;
+    align-items:start;
+  }
+  @media (max-width: 940px){
+    .layout{grid-template-columns: 1fr;}
+  }
+
+  .panel{
+    background: var(--paper-white);
+    border: 1px solid var(--paper-line);
+    position:relative;
+  }
+  .panel-tab{
+    position:absolute; top:-11px; left:14px;
+    background: var(--green-dark);
+    color: var(--paper-white);
+    font-family: var(--serif);
+    font-size: 12.5px;
+    padding: 3px 12px;
+    border-radius: 2px;
+  }
+  .panel-body{padding: 22px 16px 16px;}
+
+  /* ---------- Roster ---------- */
+  .employee{
+    border: 1px solid var(--paper-line);
+    border-left: 4px solid var(--green);
+    background: var(--paper);
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border-radius: 2px;
+  }
+  .employee.busy{border-left-color: var(--gold); opacity:0.75;}
+  .employee .name{font-weight:600; font-size:13.5px;}
+  .employee .role{font-size:11.5px; color:var(--ink-soft);}
+  .employee .badge{
+    display:inline-block; font-family:var(--mono); font-size:10.5px;
+    background:var(--green-pale); color:var(--green-dark); padding:1px 5px; border-radius:2px; margin-top:3px;
+  }
+  .hire-list{margin-top:16px; border-top:1px solid var(--paper-line); padding-top:12px;}
+  .hire-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:6px 0; font-size:12.5px; border-bottom:1px dashed var(--paper-line);
+  }
+  .hire-row:last-child{border-bottom:none;}
+  .hire-row .lbl{font-weight:600;}
+  .hire-row .rank{font-size:10.5px; color:var(--ink-soft); display:block;}
+  .btn{
+    border: 1px solid var(--green-dark);
+    background: var(--green);
+    color: var(--paper-white);
+    padding: 5px 11px;
+    font-size: 12.5px;
+    font-weight:600;
+    border-radius: 2px;
+  }
+  .btn:hover:not(:disabled){background:var(--green-dark);}
+  .btn.secondary{background:var(--paper-white); color:var(--ink); border-color:var(--paper-line);}
+  .btn.secondary:hover:not(:disabled){background:var(--paper);}
+  .btn.small{padding:3px 8px; font-size:11.5px;}
+
+  /* ---------- Counters (guichês) ---------- */
+  .counters{display:grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap:14px;}
+  .counter{
+    border: 1px solid var(--paper-line);
+    background: var(--paper-white);
+    border-radius: 2px;
+    min-height: 210px;
+    position:relative;
+    overflow:hidden;
+  }
+  .counter-head{
+    background: var(--green-dark);
+    color: var(--paper-white);
+    font-family: var(--serif);
+    font-size: 13px;
+    padding: 6px 10px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .counter-empty{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:210px; gap:10px; color: var(--ink-soft); font-size:13px; text-align:center; padding:0 14px;
+  }
+  .counter-body{padding:12px 12px 14px;}
+  .client-type{font-weight:700; font-size:14.5px;}
+  .client-desc{font-size:11.5px; color:var(--ink-soft); margin-top:1px;}
+  .stage-track{display:flex; gap:4px; margin:10px 0;}
+  .stage-dot{
+    flex:1; height:6px; background:var(--paper-line); border-radius:2px; position:relative;
+  }
+  .stage-dot.done{background:var(--green);}
+  .stage-dot.current{background:var(--gold);}
+  .stage-name{font-family:var(--serif); font-weight:600; font-size:14px; margin-top:2px;}
+  .stage-req{font-size:11px; color:var(--ink-soft); margin-bottom:8px;}
+  select.assign{
+    width:100%; padding:5px 6px; font-size:12.5px; border:1px solid var(--paper-line);
+    border-radius:2px; background:var(--paper); margin-bottom:8px; font-family:var(--sans);
+  }
+  .counter-actions{display:flex; gap:8px;}
+  .protocol{
+    font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); letter-spacing:0.4px;
+  }
+
+  /* stamp overlay */
+  .stamp{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    pointer-events:none; background: rgba(250,246,234,0.55);
+  }
+  .stamp .mark{
+    border: 4px double;
+    border-radius: 50%;
+    width: 118px; height:118px;
+    display:flex; align-items:center; justify-content:center;
+    text-align:center;
+    font-family: var(--serif);
+    font-weight:700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transform: rotate(-14deg) scale(2.4);
+    opacity:0;
+    animation: stampfall 0.6s ease-out forwards;
+  }
+  .mark.ok{color:var(--green-dark); border-color:var(--green-dark);}
+  .mark.no{color:var(--wine); border-color:var(--wine);}
+  @keyframes stampfall{
+    0%{transform: rotate(-14deg) scale(2.6); opacity:0;}
+    55%{transform: rotate(-14deg) scale(0.92); opacity:1;}
+    75%{transform: rotate(-14deg) scale(1.06);}
+    100%{transform: rotate(-14deg) scale(1); opacity:1;}
+  }
+
+  /* ---------- Queue + log ---------- */
+  .ticket{
+    border:1px solid var(--paper-line); background:var(--paper);
+    padding:7px 9px; margin-bottom:7px; border-radius:2px;
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
+  }
+  .ticket .tinfo{font-size:12px;}
+  .ticket .tinfo .tt{font-weight:600;}
+  .ticket .tinfo .tp{font-family:var(--mono); color:var(--ink-soft); font-size:10px;}
+  .empty-note{font-size:12.5px; color:var(--ink-soft); font-style:italic;}
+
+  .ledger{
+    margin-top:16px; border-top:1px solid var(--paper-line); padding-top:10px;
+    max-height: 260px; overflow-y:auto;
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 21px, var(--paper-line) 22px);
+  }
+  .ledger-entry{
+    font-size:11.5px; line-height:22px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .ledger-entry .p{font-family:var(--mono); color:var(--ink-soft); margin-right:6px;}
+  .ledger-entry.ok{color:var(--green-dark);}
+  .ledger-entry.no{color:var(--wine);}
+
+  footer.foot{
+    margin-top:22px; text-align:center; font-size:11.5px; color:var(--ink-soft);
+    padding-top:12px; border-top:1px solid var(--paper-line);
+  }
+  .reset-link{background:none; border:none; color:var(--wine); text-decoration:underline; font-size:11.5px; padding:0;}
+</style>
+</head>
+<body>
+<div class="app" id="app">Carregando…</div>
+
+<script>
+(function(){
+
+  /* ================= DATA ================= */
+
+  var ROLES = [
+    { key:'auxiliar',   label:'Auxiliar',               level:1, baseCost:150  },
+    { key:'escrevente', label:'Escrevente',              level:2, baseCost:420  },
+    { key:'substituto', label:'Escrevente Substituto',   level:3, baseCost:950  },
+    { key:'titular',    label:'Titular',                 level:4, baseCost:2300 }
+  ];
+  function roleByKey(k){ for (var i=0;i<ROLES.length;i++) if (ROLES[i].key===k) return ROLES[i]; return null; }
+
+  var STAGES = [
+    { key:'triagem', label:'Triagem', minLevel:1, roleLabel:'Auxiliar ou superior',
+      okMsgs:['Documentação inicial conferida.','Senha emitida, ficha aberta.'],
+      noMsgs:['Falta documento básico — cliente orientado a regularizar.','Assunto mal identificado, triagem refeita.'] },
+    { key:'qualificacao', label:'Qualificação', minLevel:2, roleLabel:'Escrevente ou superior',
+      okMsgs:['Título qualificado, emolumentos recolhidos.','Busca nos livros concluída sem óbices.'],
+      noMsgs:['Nota de Exigência emitida — pendência a sanar.','Emolumentos calculados incorretamente.'] },
+    { key:'lavratura', label:'Lavratura', minLevel:2, roleLabel:'Escrevente ou superior',
+      okMsgs:['Minuta redigida e aprovada pelas partes.','Ato lavrado conforme a vontade das partes.'],
+      noMsgs:['Erro na minuta — ajuste necessário.','Parte não compareceu para assinar.'] },
+    { key:'assinatura', label:'Assinatura Final', minLevel:3, roleLabel:'Substituto ou Titular',
+      okMsgs:['Fé pública outorgada com sucesso.','Selo de autenticidade lançado no livro.'],
+      noMsgs:['Revisão do titular pendente.','Retificação do livro solicitada.'] }
+  ];
+
+  var CLIENT_TYPES = [
+    { key:'rcpn',     label:'RCPN',                  desc:'Nascimento, casamento ou óbito',        pay:45  },
+    { key:'notas',    label:'Tabelionato de Notas',  desc:'Escritura, procuração ou testamento',   pay:120 },
+    { key:'ri',       label:'Registro de Imóveis',   desc:'Matrícula ou certidão de ônus',         pay:200 },
+    { key:'protesto', label:'Tab. de Protesto',      desc:'Título vencido ou quitação',            pay:80  },
+    { key:'rcpj',     label:'RCPJ / RTD',            desc:'Estatuto ou notificação extrajudicial', pay:60  }
+  ];
+  function clientTypeByKey(k){ for (var i=0;i<CLIENT_TYPES.length;i++) if (CLIENT_TYPES[i].key===k) return CLIENT_TYPES[i]; return null; }
+
+  var FIRST_NAMES = ['Ana','Carlos','Beatriz','João','Fernanda','Marcos','Juliana','Paulo','Camila','Rafael','Luciana','Eduardo','Patrícia','Bruno','Renata'];
+  var LAST_NAMES = ['Souza','Lima','Pereira','Almeida','Ribeiro','Carvalho','Gomes','Barbosa','Cardoso','Teixeira','Rocha','Nogueira'];
+  function randomName(){
+    return FIRST_NAMES[Math.floor(Math.random()*FIRST_NAMES.length)] + ' ' + LAST_NAMES[Math.floor(Math.random()*LAST_NAMES.length)];
+  }
+
+  var MAX_COUNTERS_BASE = 3;
+  var STORAGE_KEY = 'cartorio-save-v1';
+
+  /* ================= STATE ================= */
+
+  var state = null;
+
+  function freshState(){
+    return {
+      money: 300,
+      xp: 0,
+      level: 1,
+      protocolSeq: 1,
+      hireCounts: { auxiliar:0, escrevente:0, substituto:0, titular:0 },
+      employees: [
+        mkEmployee('auxiliar'),
+        mkEmployee('escrevente'),
+        mkEmployee('titular')
+      ],
+      queue: [],
+      counters: [null, null, null], // each: {clientId, employeeId} or null
+      clients: {}, // id -> client object (also used for queued ones)
+      log: [],
+      completed: 0
+    };
+  }
+
+  var idCounter = 1;
+  function nextId(prefix){ return prefix + (idCounter++); }
+
+  function mkEmployee(roleKey){
+    var role = roleByKey(roleKey);
+    return { id: nextId('emp'), role: roleKey, level: role.level, name: randomName() };
+  }
+
+  function mkClient(){
+    var type = CLIENT_TYPES[Math.floor(Math.random()*CLIENT_TYPES.length)];
+    var protocol = String(state.protocolSeq++).padStart(4,'0');
+    return { id: nextId('cli'), typeKey: type.key, protocol: protocol, stageIndex: 0, attempts: 0 };
+  }
+
+  function xpForLevel(lvl){ return lvl * 120; }
+
+  function addLog(text, kind){
+    state.log.unshift({ protocol:'', text: text, kind: kind || 'info' });
+    if (state.log.length > 40) state.log.pop();
+  }
+
+  function addLogEntry(protocol, text, kind){
+    state.log.unshift({ protocol: protocol, text: text, kind: kind });
+    if (state.log.length > 40) state.log.pop();
+  }
+
+  /* ================= PERSISTENCE ================= */
+
+  function saveState(){
+    if (!window.storage) return;
+    try {
+      window.storage.set(STORAGE_KEY, JSON.stringify(state), false).catch(function(){});
+    } catch (e) { /* ignore */ }
+  }
+
+  function loadState(cb){
+    if (!window.storage) { cb(freshState()); return; }
+    try {
+      window.storage.get(STORAGE_KEY, false).then(function(res){
+        if (res && res.value) {
+          try {
+            var parsed = JSON.parse(res.value);
+            if (parsed && parsed.employees) { cb(parsed); return; }
+          } catch(e){}
+        }
+        cb(freshState());
+      }).catch(function(){ cb(freshState()); });
+    } catch(e){ cb(freshState()); }
+  }
+
+  function resetGame(){
+    if (!confirm('Reiniciar a simulação do zero? O progresso salvo será apagado.')) return;
+    state = freshState();
+    idCounter = 1;
+    addLog('Nova simulação iniciada.', 'info');
+    saveState();
+    render();
+  }
+
+  /* ================= GAME LOGIC ================= */
+
+  function maxCounters(){
+    return state.level >= 4 ? MAX_COUNTERS_BASE + 1 : MAX_COUNTERS_BASE;
+  }
+
+  function busyEmployeeIds(){
+    var busy = {};
+    state.counters.forEach(function(c){ if (c && c.employeeId) busy[c.employeeId] = true; });
+    return busy;
+  }
+
+  function spawnClient(){
+    if (state.queue.length >= 6) return;
+    var c = mkClient();
+    state.clients[c.id] = c;
+    state.queue.push(c.id);
+    var type = clientTypeByKey(c.typeKey);
+    addLogEntry(c.protocol, 'Cliente chega para ' + type.label + '.', 'info');
+  }
+
+  function callToCounter(counterIndex){
+    if (state.counters[counterIndex]) return;
+    if (state.queue.length === 0) return;
+    var clientId = state.queue.shift();
+    state.counters[counterIndex] = { clientId: clientId, employeeId: null };
+    saveState();
+    render();
+  }
+
+  function assignEmployee(counterIndex, employeeId){
+    var counter = state.counters[counterIndex];
+    if (!counter) return;
+    counter.employeeId = employeeId || null;
+    saveState();
+    render();
+  }
+
+  function successChance(employee, stage){
+    var over = employee.level - stage.minLevel;
+    var chance = 0.52 + over * 0.15 + (state.level - 1) * 0.03;
+    return Math.max(0.12, Math.min(0.94, chance));
+  }
+
+  function processCounter(counterIndex){
+    var counter = state.counters[counterIndex];
+    if (!counter || !counter.employeeId) return;
+    var client = state.clients[counter.clientId];
+    var stage = STAGES[client.stageIndex];
+    var employee = null;
+    for (var i=0;i<state.employees.length;i++) if (state.employees[i].id === counter.employeeId) employee = state.employees[i];
+    if (!employee) return;
+
+    client.attempts++;
+    var success = Math.random() < successChance(employee, stage);
+    var type = clientTypeByKey(client.typeKey);
+
+    // Play stamp animation, then resolve after it finishes.
+    counter._pendingResult = success ? 'ok' : 'no';
+    render(); // shows stamp overlay
+
+    setTimeout(function(){
+      if (success) {
+        var msg = stage.okMsgs[Math.floor(Math.random()*stage.okMsgs.length)];
+        addLogEntry(client.protocol, stage.label + ': ' + msg, 'ok');
+        client.stageIndex++;
+        if (client.stageIndex >= STAGES.length) {
+          // Completed!
+          state.money += type.pay;
+          var xpGain = Math.round(type.pay / 8);
+          state.xp += xpGain;
+          state.completed++;
+          addLogEntry(client.protocol, 'Atendimento concluído (' + type.label + '). +R$' + type.pay + ' / +' + xpGain + ' XP.', 'ok');
+          while (state.xp >= xpForLevel(state.level)) {
+            state.xp -= xpForLevel(state.level);
+            state.level++;
+            addLog('O cartório subiu para o nível ' + state.level + '!', 'info');
+          }
+          delete state.clients[client.id];
+          state.counters[counterIndex] = null;
+        } else {
+          // keep employee assigned only if still qualified for the new stage
+          var nextStage = STAGES[client.stageIndex];
+          if (employee.level < nextStage.minLevel) counter.employeeId = null;
+          counter._pendingResult = null;
+        }
+      } else {
+        var fmsg = stage.noMsgs[Math.floor(Math.random()*stage.noMsgs.length)];
+        addLogEntry(client.protocol, stage.label + ': ' + fmsg, 'no');
+        counter._pendingResult = null;
+      }
+      saveState();
+      render();
+    }, 650);
+  }
+
+  function hireEmployee(roleKey){
+    var role = roleByKey(roleKey);
+    var count = state.hireCounts[roleKey] || 0;
+    var cost = Math.round(role.baseCost * Math.pow(1.32, count));
+    if (state.money < cost) return;
+    state.money -= cost;
+    state.hireCounts[roleKey] = count + 1;
+    var emp = mkEmployee(roleKey);
+    state.employees.push(emp);
+    addLog(emp.name + ' foi contratado(a) como ' + role.label + '.', 'info');
+    saveState();
+    render();
+  }
+
+  function hireCost(roleKey){
+    var role = roleByKey(roleKey);
+    var count = state.hireCounts[roleKey] || 0;
+    return Math.round(role.baseCost * Math.pow(1.32, count));
+  }
+
+  /* ================= RENDER ================= */
+
+  var app = document.getElementById('app');
+
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderSeal(){
+    return '<svg class="seal" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+      '<circle cx="30" cy="30" r="27" fill="none" stroke="#24392c" stroke-width="2"/>' +
+      '<circle cx="30" cy="30" r="21" fill="none" stroke="#a9803f" stroke-width="1.2"/>' +
+      '<text x="30" y="36" text-anchor="middle" font-family="Source Serif 4, serif" font-weight="700" font-size="18" fill="#24392c">CC</text>' +
+      '</svg>';
+  }
+
+  function renderHeader(){
+    var xpNeed = xpForLevel(state.level);
+    var pct = Math.min(100, Math.round((state.xp / xpNeed) * 100));
+    return (
+      '<header class="letterhead">' +
+        '<div class="brand">' + renderSeal() +
+          '<div class="brand-text">' +
+            '<h1>Cartório Central de Vila Nova</h1>' +
+            '<p>simulador de gestão notarial e registral</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="stats">' +
+          '<div class="stat-chip"><div class="k">Saldo</div><div class="v">R$ ' + state.money.toLocaleString('pt-BR') + '</div></div>' +
+          '<div class="stat-chip"><div class="k">Nível</div><div class="v">' + state.level + '</div>' +
+            '<div class="xp-bar"><div style="width:' + pct + '%"></div></div>' +
+          '</div>' +
+          '<div class="stat-chip"><div class="k">Atendidos</div><div class="v">' + state.completed + '</div></div>' +
+        '</div>' +
+      '</header>'
+    );
+  }
+
+  function renderRoster(){
+    var busy = busyEmployeeIds();
+    var html = '<div class="panel"><span class="panel-tab">Corpo Funcional</span><div class="panel-body">';
+    if (state.employees.length === 0) {
+      html += '<p class="empty-note">Nenhum funcionário contratado.</p>';
+    }
+    state.employees.forEach(function(emp){
+      var role = roleByKey(emp.role);
+      var isBusy = !!busy[emp.id];
+      html += '<div class="employee' + (isBusy ? ' busy' : '') + '">' +
+        '<div class="name">' + esc(emp.name) + '</div>' +
+        '<div class="role">' + role.label + '</div>' +
+        '<span class="badge">' + (isBusy ? 'Ocupado' : 'Disponível') + '</span>' +
+      '</div>';
+    });
+    html += '<div class="hire-list">';
+    ROLES.forEach(function(role){
+      var cost = hireCost(role.key);
+      var canAfford = state.money >= cost;
+      html += '<div class="hire-row">' +
+        '<div><span class="lbl">' + role.label + '</span><span class="rank">R$ ' + cost.toLocaleString('pt-BR') + '</span></div>' +
+        '<button class="btn small" data-action="hire" data-role="' + role.key + '" ' + (canAfford ? '' : 'disabled') + '>Contratar</button>' +
+      '</div>';
+    });
+    html += '</div></div></div>';
+    return html;
+  }
+
+  function renderCounters(){
+    var n = maxCounters();
+    var busy = busyEmployeeIds();
+    var html = '<div class="panel"><span class="panel-tab">Guichês de Atendimento</span><div class="panel-body">' +
+      '<div class="counters">';
+
+    for (var i=0;i<n;i++){
+      var counter = state.counters[i];
+      html += '<div class="counter">';
+      html += '<div class="counter-head"><span>Guichê ' + (i+1) + '</span>' + (counter ? '<span class="protocol">Nº ' + esc(state.clients[counter.clientId].protocol) + '</span>' : '') + '</div>';
+
+      if (!counter) {
+        var canCall = state.queue.length > 0;
+        html += '<div class="counter-empty">' +
+          '<span>Guichê livre.</span>' +
+          '<button class="btn secondary" data-action="call" data-idx="' + i + '" ' + (canCall ? '' : 'disabled') + '>Chamar próximo cliente</button>' +
+        '</div>';
+      } else {
+        var client = state.clients[counter.clientId];
+        var type = clientTypeByKey(client.typeKey);
+        var stage = STAGES[client.stageIndex];
+
+        html += '<div class="counter-body">';
+        if (counter._pendingResult) {
+          html += '<div class="stamp"><div class="mark ' + counter._pendingResult + '">' +
+            (counter._pendingResult === 'ok' ? 'Deferido' : 'Exigência') + '</div></div>';
+        }
+        html += '<div class="client-type">' + type.label + '</div>';
+        html += '<div class="client-desc">' + type.desc + '</div>';
+
+        html += '<div class="stage-track">';
+        for (var s=0;s<STAGES.length;s++){
+          var cls = s < client.stageIndex ? 'done' : (s === client.stageIndex ? 'current' : '');
+          html += '<div class="stage-dot ' + cls + '"></div>';
+        }
+        html += '</div>';
+
+        html += '<div class="stage-name">Etapa ' + (client.stageIndex+1) + '/4 — ' + stage.label + '</div>';
+        html += '<div class="stage-req">Requer: ' + stage.roleLabel + '</div>';
+
+        var eligible = state.employees.filter(function(e){
+          return e.level >= stage.minLevel && (!busy[e.id] || e.id === counter.employeeId);
+        });
+        html += '<select class="assign" data-action="assign" data-idx="' + i + '">';
+        html += '<option value="">— atribuir funcionário —</option>';
+        eligible.forEach(function(e){
+          var role = roleByKey(e.role);
+          html += '<option value="' + e.id + '"' + (counter.employeeId === e.id ? ' selected' : '') + '>' + esc(e.name) + ' (' + role.label + ')</option>';
+        });
+        html += '</select>';
+
+        html += '<div class="counter-actions">' +
+          '<button class="btn" data-action="process" data-idx="' + i + '" ' + (counter.employeeId && !counter._pendingResult ? '' : 'disabled') + '>Processar etapa</button>' +
+        '</div>';
+
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    html += '</div></div></div>';
+    return html;
+  }
+
+  function renderQueueAndLog(){
+    var html = '<div class="panel"><span class="panel-tab">Fila de Espera</span><div class="panel-body">';
+    if (state.queue.length === 0) {
+      html += '<p class="empty-note">Nenhum cliente aguardando no momento.</p>';
+    }
+    state.queue.forEach(function(id){
+      var c = state.clients[id];
+      var type = clientTypeByKey(c.typeKey);
+      html += '<div class="ticket"><div class="tinfo"><div class="tt">' + type.label + '</div><div class="tp">Nº ' + esc(c.protocol) + '</div></div></div>';
+    });
+
+    html += '<div class="ledger" aria-live="polite">';
+    if (state.log.length === 0) {
+      html += '<div class="ledger-entry">Livro de ocorrências vazio.</div>';
+    }
+    state.log.forEach(function(entry){
+      html += '<div class="ledger-entry ' + (entry.kind || '') + '">' +
+        (entry.protocol ? '<span class="p">Nº ' + esc(entry.protocol) + '</span>' : '') +
+        esc(entry.text) + '</div>';
+    });
+    html += '</div>';
+
+    html += '</div></div>';
+    return html;
+  }
+
+  function render(){
+    app.innerHTML =
+      renderHeader() +
+      '<div class="layout">' +
+        renderRoster() +
+        renderCounters() +
+        renderQueueAndLog() +
+      '</div>' +
+      '<footer class="foot">Baseado na Lei 8.935/1994 — simulação livre e fictícia para fins de jogo. ' +
+        '<button class="reset-link" data-action="reset">Reiniciar simulação</button>' +
+      '</footer>';
+
+    app.querySelectorAll('[data-action="hire"]').forEach(function(btn){
+      btn.addEventListener('click', function(){ hireEmployee(btn.getAttribute('data-role')); });
+    });
+    app.querySelectorAll('[data-action="call"]').forEach(function(btn){
+      btn.addEventListener('click', function(){ callToCounter(parseInt(btn.getAttribute('data-idx'),10)); });
+    });
+    app.querySelectorAll('[data-action="assign"]').forEach(function(sel){
+      sel.addEventListener('change', function(){ assignEmployee(parseInt(sel.getAttribute('data-idx'),10), sel.value); });
+    });
+    app.querySelectorAll('[data-action="process"]').forEach(function(btn){
+      btn.addEventListener('click', function(){ processCounter(parseInt(btn.getAttribute('data-idx'),10)); });
+    });
+    var resetBtn = app.querySelector('[data-action="reset"]');
+    if (resetBtn) resetBtn.addEventListener('click', resetGame);
+  }
+
+  /* ================= BOOT ================= */
+
+  loadState(function(loaded){
+    state = loaded;
+    if (state.log.length === 0) {
+      addLog('Bem-vindo(a) ao Cartório Central de Vila Nova. Contrate a equipe, chame os clientes e conduza cada atendimento pelas quatro etapas legais.', 'info');
+    }
+    render();
+    setInterval(function(){
+      spawnClient();
+      render();
+      saveState();
+    }, 7000);
+    if (state.queue.length === 0 && Object.keys(state.clients).length === 0) {
+      spawnClient();
+      render();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
