@@ -407,9 +407,7 @@ CS.renderModals = function() {
       '<div style="padding:10px; background:#fffdf7; border: 1px solid #c5a059; border-radius:4px; font-size:13px; color:#5d4037;">' +
       '<strong>⚖️ Fundamentação Legal:</strong><br>' + CS.esc(lawHint) + '</div>' +
     '</div>' +
-    '</div>' +
-      '</div>';
-      
+    '</div>';
     if (CS.uiState.docCheckData.showRejectReasons) {
       html += '<div class="modal-actions" style="margin-top:20px; flex-direction:column; gap:10px;">' +
         '<h3 style="margin: 0; text-align: center; color: #8e0000;">Motivo da Exigência:</h3>' +

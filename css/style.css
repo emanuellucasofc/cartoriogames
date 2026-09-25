@@ -573,23 +573,18 @@ footer.foot{
 [data-theme="dark"] .window-frame { background: #433628; }
 
 /* ---------- Fase 10: Auditoria Documental ---------- */
-.doc-modal {
-  background: #d4a373; /* Cor de mesa de madeira */
-  background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="%23c28f5b" opacity="0.1"/></svg>');
-  border: 8px solid #5a3d2b;
-  border-radius: 12px;
-  box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+.modal.doc-modal {
   max-width: 700px;
+  background: #fdfbf7 !important; /* Cor de papel */
 }
 .doc-modal h2 {
   text-align: center;
-  color: #fff;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+  color: #1e3c72;
   margin-top: 0;
 }
 .doc-modal p {
   text-align: center;
-  color: #fff;
+  color: #555;
   margin-bottom: 20px;
 }
 .doc-table {
