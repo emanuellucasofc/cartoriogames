@@ -684,7 +684,7 @@ CS.promoteEmployeeFinal = function(empId) {
   emp.role = info.nextKey;
   emp.level = info.nextRole.level;
   emp.empXp = 0;
-  CS.addLog(emp.name + \' foi aprovado(a) no concurso e promovido(a) de \' + oldRole.label + \' para \' + info.nextRole.label + \'!\', \'info\');
+  CS.addLog(emp.name + ' foi aprovado(a) no concurso e promovido(a) de ' + oldRole.label + ' para ' + info.nextRole.label + '!', 'info');
   CS.playHireSound();
   CS.saveState();
   CS.render();
