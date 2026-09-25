@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cartorio-sim-v5';
+const CACHE_NAME = 'cartorio-sim-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
+  self.skipWaiting(); // Força a ativação imediata
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
@@ -32,6 +33,8 @@ self.addEventListener('activate', (e) => {
       return Promise.all(
         keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
+    }).then(() => {
+      return self.clients.claim(); // Assume controle das abas abertas imediatamente
     })
   );
 });
