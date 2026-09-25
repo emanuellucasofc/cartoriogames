@@ -244,6 +244,10 @@ select.assign{
 }
 
 /* ---------- Queue + log ---------- */
+.ticket-list {
+  max-height: 250px; overflow-y: auto;
+  padding-right: 4px; margin-bottom: 10px;
+}
 .ticket{
   border:1px solid var(--paper-line); background:var(--paper);
   padding:7px 9px; margin-bottom:7px; border-radius:2px;

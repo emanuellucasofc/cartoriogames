@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cartorio-sim-v3';
+const CACHE_NAME = 'cartorio-sim-v4';
 const ASSETS = [
   './',
   './index.html',

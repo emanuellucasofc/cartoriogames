@@ -735,6 +735,7 @@ CS.renderCounters = function() {
 
 CS.renderQueueAndLog = function() {
   var html = '<div class="panel"><span class="panel-tab">Fila de Espera</span><div class="panel-body">';
+  html += '<div class="ticket-list">';
   if (CS.state.queue.length === 0) html += '<p class="empty-note">Nenhum cliente aguardando no momento.</p>';
 
   CS.state.queue.forEach(function(id) {
@@ -749,6 +750,7 @@ CS.renderQueueAndLog = function() {
       '<div class="patience-bar" title="Paciência: ' + patiencePct + '%"><div class="patience-fill" style="width:' + patiencePct + '%;background:' + pColor + '"></div></div>' +
     '</div>';
   });
+  html += '</div>';
 
   html += '<div class="ledger" aria-live="polite">';
   if (CS.state.log.length === 0) html += '<div class="ledger-entry">Livro de ocorrências vazio.</div>';
