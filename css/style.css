@@ -125,18 +125,23 @@ header.letterhead{
 .panel{
   background: var(--paper-white);
   border: 1px solid var(--paper-line);
-  position:relative;
+  position: relative;
+  overflow: hidden;
 }
 .panel-tab{
-  position:absolute; top:-11px; left:14px;
+  position: static;
+  display: block;
   background: var(--green-dark);
   color: var(--paper-white);
   font-family: var(--serif);
-  font-size: 12.5px;
-  padding: 3px 12px;
-  border-radius: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 2px solid rgba(0,0,0,0.2);
 }
-.panel-body{padding: 22px 16px 16px;}
+.panel-body{padding: 16px;}
 
 /* ---------- Roster ---------- */
 .employee{
@@ -654,20 +659,28 @@ header.letterhead {
   border-radius: 8px !important;
   box-shadow: 0 4px 0 rgba(176, 190, 197, 1), 0 8px 16px rgba(0,0,0,0.1) !important;
   margin-bottom: 24px;
-  padding: 24px 16px 16px 16px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
 }
 .panel-tab {
-  top: -14px !important; left: 16px !important;
-  background: #8e0000 !important; /* Vinho/Bordô oficial */
+  position: static !important;
+  display: block !important;
+  top: auto !important; left: auto !important;
+  background: #8e0000 !important;
   color: white !important;
   font-weight: bold !important;
   font-size: 13px !important;
-  padding: 4px 16px !important;
-  border-radius: 4px !important;
-  border: 2px solid #5c0000 !important;
-  box-shadow: 0 3px 0 #5c0000 !important;
+  padding: 8px 16px !important;
+  border-radius: 0 !important;
+  border: none !important;
+  border-bottom: 3px solid #5c0000 !important;
+  box-shadow: none !important;
   font-family: 'Georgia', serif !important;
   letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.panel-body {
+  padding: 16px !important;
 }
 
 /* Counters (Guichês) */
