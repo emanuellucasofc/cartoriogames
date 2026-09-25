@@ -344,12 +344,14 @@ CS.processCounter = function(counterIndex) {
 
   setTimeout(function() {
     if (success) {
-      var msg = stage.okMsgs[Math.floor(Math.random() * stage.okMsgs.length)];
+      var okList = stage.okMsgs || ['Etapa concluída com sucesso.'];
+      var msg = okList[Math.floor(Math.random() * okList.length)];
       CS.addLogEntry(client.protocol, stage.label + ': ' + msg, 'ok');
       employee.empXp += stage.minLevel * 8 + 5;
       advanceClient(counterIndex, client, stages, employee, counter);
     } else {
-      var fmsg = stage.noMsgs[Math.floor(Math.random() * stage.noMsgs.length)];
+      var noList = stage.noMsgs || ['Erro durante o processamento.'];
+      var fmsg = noList[Math.floor(Math.random() * noList.length)];
       CS.addLogEntry(client.protocol, stage.label + ': ' + fmsg, 'no');
       CS.changeReputation(-1);
       CS.playFailSound();
