@@ -591,12 +591,15 @@ CS.renderRoster = function() {
     var promo = CS.canPromote(emp);
     
     html += '<div class="employee' + (isBusy ? ' busy' : '') + '"><div class="emp-header">' +
-      '<div style="display:flex;gap:12px;align-items:center;"><div class="avatar-small">' + (emp.avatar||'🧑‍💼') + '</div>' +
-      '<div style="width:140px;"><div class="name">' + CS.esc(emp.name) + '</div><div class="role">' + role.label + ' (R$ ' + role.salary + '/d)</div>' +
-      '<div style="font-size:11px; color:#555; margin-top:2px; font-weight:bold;">Energia: ' + (emp.energy || 0) + '%</div>' +
-      '<div class="xp-bar" style="height:4px; margin-top:2px;"><div style="width:' + (emp.energy || 0) + '%; background:' + ((emp.energy || 0) < 30 ? 'red' : ((emp.energy || 0) < 60 ? 'orange' : '#27ae60')) + ';"></div></div>' +
+      '<div style="display:flex;gap:10px;align-items:center;flex:1;min-width:0;">' +
+      '<div class="avatar-small" style="flex-shrink:0;">' + (emp.avatar||'🧑‍💼') + '</div>' +
+      '<div style="min-width:0;flex:1;">' +
+        '<div class="name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + CS.esc(emp.name) + '</div>' +
+        '<div class="role">' + role.label + ' (R$ ' + role.salary + '/d)</div>' +
+        '<div style="font-size:11px; color:#555; margin-top:2px; font-weight:bold;">Energia: ' + (emp.energy || 0) + '%</div>' +
+        '<div class="xp-bar" style="height:4px; margin-top:2px;"><div style="width:' + (emp.energy || 0) + '%; background:' + ((emp.energy || 0) < 30 ? 'red' : ((emp.energy || 0) < 60 ? 'orange' : '#27ae60')) + ';"></div></div>' +
       '</div></div>' +
-      '<span class="badge">' + (isBusy ? 'Ocupado' : 'Disponível') + '</span></div>';
+      '<span class="badge" style="flex-shrink:0;margin-left:8px;">' + (isBusy ? 'Ocupado' : 'Livre') + '</span></div>';
 
     if (CS.nextRoleKey(emp.role)) {
       var nRole = CS.roleByKey(CS.nextRoleKey(emp.role));

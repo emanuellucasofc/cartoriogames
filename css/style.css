@@ -114,7 +114,7 @@ header.letterhead{
 /* ---------- Layout ---------- */
 .layout{
   display:grid;
-  grid-template-columns: 250px 1fr 270px;
+  grid-template-columns: 280px 1fr 280px;
   gap: 18px;
   align-items:start;
 }
@@ -146,6 +146,7 @@ header.letterhead{
   padding: 8px 10px;
   margin-bottom: 8px;
   border-radius: 2px;
+  overflow: hidden;
 }
 .employee.busy{border-left-color: var(--gold); opacity:0.75;}
 .employee .name{font-weight:600; font-size:13.5px;}
@@ -158,6 +159,7 @@ header.letterhead{
 .hire-row{
   display:flex; justify-content:space-between; align-items:center;
   padding:6px 0; font-size:12.5px; border-bottom:1px dashed var(--paper-line);
+  gap: 8px; overflow: hidden;
 }
 .hire-row:last-child{border-bottom:none;}
 .hire-row .lbl{font-weight:600;}
@@ -274,7 +276,7 @@ footer.foot{
 .rep-bad{color:var(--wine);}
 
 /* ---------- Employee XP + actions ---------- */
-.emp-header{display:flex; justify-content:space-between; align-items:flex-start;}
+.emp-header{display:flex; justify-content:space-between; align-items:flex-start; gap:6px; overflow:hidden;}
 .emp-xp{margin-top:4px;}
 .emp-xp-bar{height:4px; background:var(--paper-line); border-radius:2px; overflow:hidden; margin-bottom:2px;}
 .emp-xp-bar > div{height:100%; background:var(--gold); transition:width 0.3s ease;}
